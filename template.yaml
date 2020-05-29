@@ -12,6 +12,15 @@ Globals:
 
 Resources:
   
+  PingApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: SHARED
+
   ApiFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -26,8 +35,11 @@ Resources:
         Ping:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref PingApi
             Path: /ping
             Method: get
+            Auth:
+              ApiKeyRequired: true
   
   ApiFunctionRole:
     Type: AWS::IAM::Role
@@ -66,7 +78,10 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ApiEndpoint:
     Description: "API Gateway endpoint URL for Prod stage for API function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${PingApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ApiKeyId:
+    Description: "ID of the API Key"
+    Value: !Ref ServerlessApiKey
   ApiFunction:
     Description: "API Lambda Function ARN"
     Value: !GetAtt ApiFunction.Arn
